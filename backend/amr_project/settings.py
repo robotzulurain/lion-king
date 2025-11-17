@@ -184,3 +184,8 @@ if DATABASE_URL:
 
 # ---- Use DJANGO_DEBUG env var (Render) ----
 DEBUG = _os_for_db_tweak.getenv("DJANGO_DEBUG", "False") == "True"
+
+# --- CORS for deployed frontend (temporary, for demo/prototype) ---
+# Allow all origins – okay for your MSc prototype, tighten later if needed.
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = False
