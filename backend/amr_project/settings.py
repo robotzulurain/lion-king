@@ -168,3 +168,19 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 # Whitenoise for serving static files
 MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+# ---- DB connection tweaks for Neon on Render ----
+import os as _os_for_db_tweak
+
+DATABASE_URL = _os_for_db_tweak.getenv("DATABASE_URL")
+if DATABASE_URL:
+    db_from_env = dj_database_url.parse(
+        DATABASE_URL,
+        conn_max_age=0,        # close connection each request
+        ssl_require=True,
+    )
+    DATABASES["default"].update(db_from_env)
+    DATABASES["default"]["CONN_HEALTH_CHECKS"] = True
+
+# ---- Use DJANGO_DEBUG env var (Render) ----
+DEBUG = _os_for_db_tweak.getenv("DJANGO_DEBUG", "False") == "True"
