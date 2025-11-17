@@ -1,4 +1,4 @@
-#!/home/harry/Desktop/amr_app/venv/bin/python
+#!/home/harry/Desktop/project/amr_app/venv/bin/python
 # -*- coding: utf-8 -*-
 import re
 import sys

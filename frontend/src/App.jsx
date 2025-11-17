@@ -1,4 +1,6 @@
-import { useState } from "react";
+import React, { useState, useEffect } from 'react';
+import Login from './components/Login';
+import { authService } from './services/authService';
 import Overview from "./components/Overview.jsx";
 import Trends from "./components/Trends.jsx";
 import Antibiogram from "./components/Antibiogram.jsx";
@@ -12,13 +14,64 @@ import { FiltersProvider } from "./filters.jsx";
 
 const TABS = ["Overview","Trends","Antibiogram","Sex & Age","Geo","Data Entry","Alerts","Reports"];
 
-export default function App() {
+function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState("Overview");
 
+  useEffect(() => {
+    // Check if user is already logged in
+    const checkAuth = () => {
+      const loggedIn = authService.isLoggedIn();
+      setIsAuthenticated(loggedIn);
+      setLoading(false);
+    };
+
+    checkAuth();
+  }, []);
+
+  const handleLoginSuccess = () => {
+    setIsAuthenticated(true);
+  };
+
+  const handleLogout = () => {
+    authService.logout();
+    setIsAuthenticated(false);
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-lg">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <Login onLoginSuccess={handleLoginSuccess} />;
+  }
+
+  // Your existing dashboard - NO CHANGES to the original functionality
   return (
     <FiltersProvider>
       <div className="app">
-        <h1>AMR Surveillance Dashboard</h1>
+        {/* Add logout button to your header */}
+        <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+          <h1>AMR Surveillance Dashboard</h1>
+          <button
+            onClick={handleLogout}
+            style={{
+              background: '#ef4444',
+              color: 'white',
+              padding: '8px 16px',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: 'pointer'
+            }}
+          >
+            Logout
+          </button>
+        </div>
 
         <div className="tabs">
           {TABS.map(t => (
@@ -51,3 +104,5 @@ export default function App() {
     </FiltersProvider>
   );
 }
+
+export default App;

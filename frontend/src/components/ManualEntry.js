@@ -24,7 +24,7 @@ export default function ManualEntry() {
     setStatus('Saving…');
     try {
       const token = localStorage.getItem('token');
-      await axios.post('http://127.0.0.1:8000/api/manual-entry/', form, {
+      await axios.post('${import.meta.env.VITE_API_BASE || "http://localhost:8000"}/api/manual-entry/', form, {
         headers: { Authorization: `Token ${token}` }
       });
       setStatus('✅ Lab result saved!');

@@ -19,7 +19,7 @@ export default function CSVUpload({ token }) {
     formData.append('file', file);
 
     try {
-      const response = await axios.post('http://127.0.0.1:8000/api/upload-csv/', formData, {
+      const response = await axios.post('${import.meta.env.VITE_API_BASE || "http://localhost:8000"}/api/upload-csv/', formData, {
         headers: {
           Authorization: `Token ${token}`,
           'Content-Type': 'multipart/form-data',
@@ -47,7 +47,6 @@ export default function CSVUpload({ token }) {
   return (
     <div>
       <h2>Upload Lab Results (CSV)</h2>
-      <input type="file" accept=".csv" onChange={handleFileChange} />
       <button onClick={handleUpload}>Upload</button>
       <p>{uploadStatus}</p>
     </div>

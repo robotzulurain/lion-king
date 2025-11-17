@@ -292,3 +292,115 @@ class ManualEntryOpenView(APIView):
         except Exception as e:
             return Response({"status":"error","detail": str(e)}, status=400)
         return Response({"status":"ok","created": created})
+from pathlib import Path
+from .whonet_upload import handle_whonet_upload
+
+# Example: inside your POST /api/upload/csv handler
+def upload_csv(request):
+    f = request.FILES.get('file')
+    if f:
+        tmp = Path("/tmp") / f.name
+        with tmp.open("wb") as out:
+            out.write(f.read())
+        # Use WHONET handler
+        result = handle_whonet_upload(tmp)
+        return JsonResponse(result)
+    return JsonResponse({"status": "error", "errors": ["No file uploaded"]})
+
+# ---------- manual JSON entry (open) ----------
+@method_decorator(csrf_exempt, name="dispatch")
+class ManualEntryOpenView(APIView):
+    """
+    Accept a single JSON lab result in the same shape that the React DataEntry form sends.
+    Creates one LabResult row (one antibiotic / AST result per row).
+    """
+    permission_classes = [AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        # Accept DRF-parsed JSON or raw JSON body
+        data = {}
+        try:
+            if hasattr(request, "data") and isinstance(request.data, dict):
+                data = dict(request.data)
+            else:
+                raw = (request.body or b"").decode("utf-8") or "{}"
+                data = json.loads(raw)
+        except Exception:
+            return Response(
+                {"status": "error", "detail": "Invalid JSON body."},
+                status=400,
+            )
+
+        def get(k, default=""):
+            v = data.get(k, default)
+            if v is None:
+                return default
+            return v
+
+        # Required fields for manual entry (same as your React form)
+        required = [
+            "patient_id", "sex", "age",
+            "specimen_type", "organism",
+            "test_date", "host_type",
+            "facility", "antibiotic", "ast_result",
+        ]
+        missing = [f for f in required if str(get(f, "")).strip() == ""]
+        if missing:
+            return Response(
+                {
+                    "status": "error",
+                    "detail": f"Missing required fields: {', '.join(missing)}",
+                },
+                status=400,
+            )
+
+        # Normalise / parse date
+        test_date_str = _try_parse_date(str(get("test_date", "")))
+        if not test_date_str:
+            return Response(
+                {"status": "error", "detail": "Invalid test_date."},
+                status=400,
+            )
+
+        # Age -> integer or None
+        age_val = None
+        age_raw = get("age", "")
+        if str(age_raw).strip() != "":
+            try:
+                age_val = int(age_raw)
+            except Exception:
+                return Response(
+                    {"status": "error", "detail": "Age must be a number."},
+                    status=400,
+                )
+
+        host = str(get("host_type", "HUMAN")).strip().upper() or "HUMAN"
+
+        lr = LabResult(
+            patient_id=str(get("patient_id")).strip(),
+            sex=str(get("sex")).strip(),
+            age=age_val,
+            specimen_type=str(get("specimen_type")).strip(),
+            organism=str(get("organism")).strip(),
+            test_date=test_date_str,
+            host_type=host,
+            facility=str(get("facility")).strip(),
+            patient_type=str(get("patient_type", "")).strip() or "",
+            animal_species=str(get("animal_species", "")).strip() or None,
+            environment_type=str(get("environment_type", "")).strip() or None,
+            antibiotic=str(get("antibiotic")).strip(),
+            ast_result=str(get("ast_result")).strip().upper(),
+        )
+        lr.save()
+
+        return Response(
+            {
+                "status": "ok",
+                "id": lr.id,
+                "patient_id": lr.patient_id,
+                "organism": lr.organism,
+                "antibiotic": lr.antibiotic,
+                "ast_result": lr.ast_result,
+            },
+            status=201,
+        )

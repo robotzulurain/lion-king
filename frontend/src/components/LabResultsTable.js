@@ -17,7 +17,7 @@ export default function LabResultsTable() {
   const [pageSize, setPageSize] = useState(10);
   const [page, setPage] = useState(1);
 
-  const baseUrl = 'http://127.0.0.1:8000/api/lab-results/';
+  const baseUrl = '${import.meta.env.VITE_API_BASE || "http://localhost:8000"}/api/lab-results/';
 
   const url = useMemo(() => {
     const q = new URLSearchParams();

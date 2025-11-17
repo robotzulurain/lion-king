@@ -45,3 +45,12 @@ urlpatterns = [
     # alerts placeholder
     path('api/alerts', AlertsView.as_view()),
 ]
+
+# Add to imports at top
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+
+# Add to urlpatterns
+urlpatterns += [
+    path('api/auth/login/', TokenObtainPairView.as_view(), name='login'),
+    path('api/auth/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+]
