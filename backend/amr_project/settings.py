@@ -119,3 +119,28 @@ except Exception:
 # ~10 MB in-memory parse; larger files will be streamed (tweak as needed)
 DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024
 FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024
+
+# ================== PRODUCTION SETTINGS (Render / Neon) ==================
+import os
+import dj_database_url
+
+# Allow Render host (update with your actual URL later)
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", ".onrender.com"]
+
+# Use DATABASE_URL (from Neon) if set
+DATABASE_URL = os.getenv("DATABASE_URL")
+if DATABASE_URL:
+    DATABASES["default"] = dj_database_url.parse(
+        DATABASE_URL,
+        conn_max_age=600,
+        ssl_require=True,
+    )
+
+# Static files for Render
+STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
+
+# Whitenoise for serving static files
+MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")
+
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
