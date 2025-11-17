@@ -193,3 +193,7 @@ CORS_ALLOW_CREDENTIALS = False
 # --- CORS: allow all origins for prototype (Render + Vercel) ---
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = False
+
+# ---- CORS for Vercel frontend ----
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = False
