@@ -189,3 +189,7 @@ DEBUG = _os_for_db_tweak.getenv("DJANGO_DEBUG", "False") == "True"
 # Allow all origins – okay for your MSc prototype, tighten later if needed.
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = False
+
+# --- CORS: allow all origins for prototype (Render + Vercel) ---
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = False
